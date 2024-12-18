@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавление продукта</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 1.5rem;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        input[type="file"] {
+            border: none;
+        }
+
+        button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .preview-container img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .error {
+            border-color: coral;
+            background-color: #ffe6e6;
+        }
+
+        .error-message {
+            color: coral;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        select {
+        appearance: none; /* Скрываем стандартный стиль браузера */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding: 10px;
+        width: 100%;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #fff;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="gray"><path d="M7 10l5 5 5-5z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 10px center; /* Позиция треугольника */
+        background-size: 15px 15px;
+        cursor: pointer;
+    }
+
+    select:hover {
+        border-color: #999;
+    }
+
+    select:focus {
+        outline: none;
+        border-color: black;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Серая тень */
+    }
+
+
+    </style>
+</head>
+<body>
+    <header>Добавление продукта</header>
+
+    <div class="container">
+        <h1>Добавление продукта</h1>
+        <form method="POST" action="/addProduct" enctype="multipart/form-data">
+    <label for="name">Название:</label>
+    <input
+        type="text"
+        name="name"
+        id="name"
+        value="{{ name if name is defined else '' }}"
+        class="{{ 'error' if 'name' in errors else '' }}">
+    {% if errors.name %}
+    <div class="error-message">{{ errors.name }}</div>
+    {% endif %}
+
+    <label for="description">Описание:</label>
+    <input
+        type="text"
+        name="description"
+        id="description"
+        value="{{ description if description is defined else '' }}"
+        class="{{ 'error' if 'description' in errors else '' }}">
+    {% if errors.description %}
+    <div class="error-message">{{ errors.description }}</div>
+    {% endif %}
+
+            <label for="brand">Марка:</label>
+<select name="brand" id="brand">
+    <option value="">Универсальный товар</option>
+    {% for brand in car_brands %}
+        <option value="{{ brand['carBrandId'] }}"
+            {% if selected_brand == brand['carBrandId']|string %}selected{% endif %}>
+            {{ brand['name'] }}
+        </option>
+    {% endfor %}
+</select>
+
+<label for="model">Модель:</label>
+<select name="model" id="model" {% if not selected_brand %}disabled{% endif %}>
+    <option value="">Сначала выберите марку</option>
+    {% for model in car_models %}
+        {% if model['carBrandId'] == selected_brand|int %}
+            <option value="{{ model['carModelId'] }}"
+                {% if selected_model == model['carModelId']|string %}selected{% endif %}>
+                {{ model['name'] }}
+            </option>
+        {% endif %}
+    {% endfor %}
+</select>
+
+
+
+
+
+    <label for="price">Стоимость:</label>
+    <input
+        type="number"
+        name="price"
+        id="price"
+        value="{{ price if price is defined else '' }}"
+        class="{{ 'error' if 'price' in errors else '' }}">
+    {% if errors.price %}
+    <div class="error-message">{{ errors.price }}</div>
+    {% endif %}
+
+    <label for="stockQuantity">Количество:</label>
+    <input
+        type="number"
+        name="stockQuantity"
+        id="stockQuantity"
+        value="{{ stockQuantity if stockQuantity is defined else '' }}"
+        class="{{ 'error' if 'stockQuantity' in errors else '' }}">
+    {% if errors.stockQuantity %}
+    <div class="error-message">{{ errors.stockQuantity }}</div>
+    {% endif %}
+
+    <!-- Поле загрузки фотографий -->
+    <label for="photos">Фотографии:</label>
+    <input
+        type="file"
+        id="photos"
+        name="photos"
+        accept="image/*"
+        multiple
+        class="{{ 'error' if 'photos' in errors else '' }}">
+    {% if errors.photos %}
+    <div class="error-message">{{ errors.photos }}</div>
+    {% endif %}
+
+    <!-- Блок для предпросмотра фотографий -->
+    <div class="preview-container" id="preview"></div>
+
+    <input type="hidden" name="categoryId" value="{{ category_id }}">
+
+
+    <button type="submit">Сохранить</button>
+</form>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    const selectedBrand = "{{ selected_brand }}";
+    const selectedModel = "{{ selected_model }}";
+    const brandSelect = document.getElementById('brand');
+    const modelSelect = document.getElementById('model');
+
+    // Автозагрузка моделей, если марка выбрана
+    if (selectedBrand) {
+        fetch(`/getModels/${selectedBrand}`)
+            .then(response => response.json())
+            .then(models => {
+                modelSelect.innerHTML = '<option value="">Выберите модель</option>';
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.carModelId;
+                    option.textContent = model.name;
+                    if (model.carModelId == selectedModel) {
+                        option.selected = true;
+                    }
+                    modelSelect.appendChild(option);
+                });
+                modelSelect.disabled = false;
+            });
+    }
+});
+
+
+
+
+    const brandSelect = document.getElementById('brand');
+const modelSelect = document.getElementById('model');
+
+brandSelect.addEventListener('change', () => {
+    const selectedBrand = brandSelect.value;
+
+    // Очистка и блокировка списка моделей
+    modelSelect.innerHTML = '<option value="">Сначала выберите марку</option>';
+    modelSelect.disabled = true;
+
+    if (selectedBrand) {
+        fetch(`/getModels/${selectedBrand}`)
+            .then(response => response.json())
+            .then(models => {
+                modelSelect.innerHTML = '<option value="">Выберите модель</option>';
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.carModelId; // Передаем ID модели
+                    option.textContent = model.name; // Название модели
+                    modelSelect.appendChild(option);
+                });
+                modelSelect.disabled = false;
+            })
+            .catch(error => console.error('Ошибка при загрузке моделей:', error));
+    }
+});
+
+        // Предварительный просмотр загруженных фотографий
+        const input = document.getElementById('photos');
+        const previewContainer = document.getElementById('preview');
+
+        input.addEventListener('change', () => {
+            previewContainer.innerHTML = ""; // Очищаем предыдущие превью
+            const files = Array.from(input.files);
+
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '100px';
+                    img.style.height = '100px';
+                    img.style.objectFit = 'cover';
+                    img.style.marginRight = '10px';
+                    img.style.marginBottom = '10px';
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+
+    </script>
+</body>
+</html>

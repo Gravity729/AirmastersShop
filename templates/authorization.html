@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airmasters - Вход</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        /* Фиксированный хедер */
+        .header {
+            width: 100%;
+            background-color: #2c2c2c;
+            color: white;
+            padding: 20px 15px;
+            position: fixed;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .header img {
+            height: 32px;
+            width: 32px;
+            cursor: pointer;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-left: 45px;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .header .icons {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-right: 25px;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: 150px auto 50px;
+            padding: 20px;
+            text-align: left;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .form-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .form-container input {
+            width: 94%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-container button:hover {
+            background-color: #555;
+        }
+
+        .form-container .register-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .form-container .register-link a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        .form-container .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .notification {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+
+        .notification.success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .notification.error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 80%;
+            height: 100%;
+            background-color: #333;
+            color: white;
+            padding: 40px 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            transition: left 0.3s ease;
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar ul.main-menu {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .sidebar ul.main-menu > li {
+            margin: 20px 0;
+        }
+
+        .sidebar ul.dropdown {
+            display: none;
+            list-style: none;
+            margin: 15px 0;
+            padding-left: 10px;
+        }
+
+        .sidebar ul.dropdown.open {
+            display: block;
+        }
+
+        .sidebar ul.dropdown li {
+            margin: 10px 0;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        .sidebar a.active {
+            text-decoration: underline;
+        }
+
+        .sidebar ul.dropdown a {
+            font-size: 18px;
+            color: #bbb;
+        }
+
+        .sidebar ul.dropdown a:hover {
+            color: white;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+        }
+
+        .overlay.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<!-- Затемнение -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Хедер -->
+<div class="header">
+    <img src="{{ url_for('static', filename='icons8-меню-30.png') }}" alt="Menu" id="menu-icon">
+    <h1>Airmasters</h1>
+    <div class="icons">
+        <img src="{{ url_for('static', filename='icons8-сердце-50.png') }}" alt="Favorites">
+        <img src="{{ url_for('static', filename='icons8-сумка-для-покупок-50.png') }}" alt="Cart">
+    </div>
+</div>
+
+<!-- Боковое меню -->
+<div class="sidebar" id="sidebar">
+    <ul class="main-menu">
+        <li><a href="/">Главная</a></li>
+        <li>
+            <a href="#" id="catalog-link">Каталог</a>
+            <ul class="dropdown" id="catalog-dropdown">
+                {% for category in categories %}
+                <li><a href="/products?category={{ category.id }}">{{ category.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li><a href="/about">О нас</a></li>
+        <li><a href="/contacts">Контакты</a></li>
+        <li><a href="/authorization" class="active">Личный кабинет</a></li>
+    </ul>
+</div>
+
+<!-- Контент -->
+<div class="form-container">
+    <h2>Вход в аккаунт</h2>
+    <form id="loginForm">
+        <label for="login">Логин:</label>
+        <input type="text" id="login" name="login" required>
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Войти</button>
+    </form>
+    <div class="register-link">
+        <a href="/registration">Зарегистрироваться</a>
+    </div>
+    <div id="notification" class="notification"></div>
+</div>
+
+<script>
+    // Получение элементов DOM
+    const menuIcon = document.getElementById('menu-icon');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const catalogLink = document.getElementById('catalog-link');
+    const catalogDropdown = document.getElementById('catalog-dropdown');
+    const form = document.getElementById('loginForm');
+    const notification = document.getElementById('notification');
+
+    // Открытие и закрытие бокового меню
+    menuIcon.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        overlay.classList.add('visible');
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('visible');
+    });
+
+    // Открытие и закрытие выпадающего меню
+    catalogLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        catalogDropdown.classList.toggle('open');
+    });
+
+    // Обработка формы авторизации
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Отключение стандартного поведения формы
+
+        const formData = new FormData(form); // Получение данных из формы
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json(); // Парсинг ответа сервера
+
+            // Отображение уведомления
+            notification.style.display = 'block';
+            if (result.status === 'success') {
+                notification.className = 'notification success';
+                notification.textContent = result.message;
+
+                // Перенаправление на страницу личного кабинета
+                setTimeout(() => {
+                    window.location.href = result.redirect_url;
+                }, 1500); // Добавлена задержка для отображения сообщения
+            } else {
+                notification.className = 'notification error';
+                notification.textContent = result.message;
+            }
+        } catch (error) {
+            // Обработка ошибок
+            notification.style.display = 'block';
+            notification.className = 'notification error';
+            notification.textContent = 'Произошла ошибка. Попробуйте еще раз.';
+            console.error('Ошибка:', error);
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px 15px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+
+        h2, h3 {
+            margin-top: 0;
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+
+        .item-details {
+            flex-grow: 1;
+        }
+
+        form label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 20px;
+            background: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #555;
+        }
+        .item-details {
+    flex-grow: 1;
+    font-size: 14px; /* Меньший размер шрифта для всех текстов */
+    margin-bottom: 5px; /* Меньший отступ между элементами */
+}
+
+.item-details h3 {
+    margin: 5px 0 3px 0; /* Уменьшаем отступы сверху и снизу */
+    font-size: 16px; /* Уменьшение размера названия товара */
+    font-weight: bold;
+}
+
+.item-details p {
+    margin: 2px 0; /* Уменьшаем отступы между строками */
+    font-size: 14px;
+}
+
+    </style>
+</head>
+<body>
+<header>Оформление заказа</header>
+<div class="container">
+    <h2>Товары в заказе</h2>
+
+    {% if order_items %}
+        <div id="order-items">
+            {% for item in order_items %}
+            <div class="item">
+                <img src="{{ item.photoUrl }}" alt="{{ item.name }}">
+                <div class="item-details">
+                    <h3>{{ item.name }}</h3>
+                    <p>Артикул: {{ item.productId }}</p>
+                    <p>{{ item.quantity }} шт.</p>
+                    <p>Стоимость: {{ item.price * item.quantity }}₽</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <h3>Итоговая сумма: {{ total_cost }}₽</h3>
+    {% else %}
+        <p>Нет доступных товаров для оформления заказа.</p>
+    {% endif %}
+
+
+    <form method="POST" action="/order">
+    <label for="name">Имя:</label>
+    <input type="text" name="name" id="name" value="{{ user['fName'] }}" required>
+
+    <label for="phone">Телефон:</label>
+    <input type="text" name="phone" id="phone" value="{{ user['phone'] }}" required>
+
+    <label for="email">E-mail:</label>
+    <input type="email" name="email" id="email" value="{{ user['email'] }}" required>
+
+    <label for="country">Страна:</label>
+<select name="country" id="country" required>
+    <option value="">-</option> <!-- Пустой вариант по умолчанию -->
+    <option value="Россия">Россия</option>
+    <option value="Беларусь">Беларусь</option>
+</select>
+
+<label for="city">Город:</label>
+<select name="city" id="city" required>
+    <option value="">Выберите страну</option>
+</select>
+
+    <button type="submit">Заказать</button>
+</form>
+
+</div>
+
+
+<script>
+    const countrySelect = document.getElementById('country');
+const citySelect = document.getElementById('city');
+
+const cities = {
+    "Россия": ["Санкт-Петербург", "Владимир", "Москва"],
+    "Беларусь": ["Минск", "Брест", "Могилев"]
+};
+
+countrySelect.addEventListener('change', () => {
+    // Очищаем список городов при смене страны
+    citySelect.innerHTML = '<option value="">Выберите город</option>';
+    const selectedCountry = countrySelect.value;
+
+    // Добавляем города только если страна выбрана
+    if (selectedCountry && cities[selectedCountry]) {
+        cities[selectedCountry].forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            citySelect.appendChild(option);
+        });
+    }
+});
+
+</script>
+</body>
+</html>

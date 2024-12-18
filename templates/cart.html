@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина</title>
+    <style>
+html {
+            scrollbar-width: none; /* Убирает полосу прокрутки в Firefox */
+        }
+
+        html::-webkit-scrollbar {
+            display: none; /* Убирает полосу прокрутки в WebKit-браузерах (Chrome, Safari, Edge) */
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #333;
+        }
+
+        /* Фиксированный хедер */
+        .header {
+            width: 100%;
+            background-color: #2c2c2c;
+            color: white;
+            padding: 20px 15px;
+            position: fixed;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .header img {
+            height: 32px;
+            width: 32px;
+            cursor: pointer;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-left: 45px;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .header .icons {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-right: 25px;
+        }
+
+        /* Боковое меню */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 80%;
+            height: 100%;
+            background-color: #333;
+            color: white;
+            padding: 40px 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            transition: left 0.3s ease;
+            z-index: 1001;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar ul.main-menu {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 80px;
+        }
+
+        .sidebar ul.main-menu > li {
+            margin: 20px 0;
+        }
+
+        .sidebar ul.dropdown {
+            display: none;
+            list-style: none;
+            margin: 15px 0;
+            padding-left: 10px;
+        }
+
+        .sidebar ul.dropdown.open {
+            display: block;
+        }
+
+        .sidebar ul.dropdown li {
+            margin: 10px 0;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        .sidebar a.active {
+            text-decoration: underline;
+        }
+
+        .sidebar ul.dropdown a {
+            font-size: 18px;
+            color: #bbb;
+        }
+
+        .sidebar ul.dropdown a:hover {
+            color: white;
+        }
+
+        /* Крестик закрытия */
+        .sidebar #close-icon {
+            position: absolute;
+            top: 25px;
+            right: 20px;
+            height: 40px;
+            width: 40px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .sidebar.open #close-icon {
+            display: block;
+        }
+
+        /* Затемнение */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+        }
+
+
+        .overlay.visible {
+            display: block;
+        }
+        .cart-header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+        .cart-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+                    padding-bottom: 80px; /* Добавлен дополнительный отступ для блока .cart-summary */
+        }
+        .cart-item {
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            position: relative;
+        }
+        .cart-item.unavailable {
+            background-color: #f8d7da;
+        }
+        .cart-item-photo {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .cart-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .cart-item-info {
+            flex: 1;
+        margin-left: 10px;
+        margin-right: 40px; /* Добавляем отступ справа */
+        }
+        .cart-item-info h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+        .cart-item-info p {
+            margin: 5px 0;
+            color: #777;
+            font-size: 14px;
+        }
+        .cart-item-info .article {
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .dots-menu {
+                width: 25px;
+                height: 25px;
+                cursor: pointer;
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 40px;
+            right: 10px;
+            background: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            z-index: 10;
+        }
+        .menu-dropdown button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+        }
+        .menu-dropdown button:hover {
+            background-color: #eee;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        .quantity-controls button {
+            padding: 5px 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .quantity-controls button:hover {
+            background-color: #eee;
+        }
+        .cart-divider {
+            margin: 15px 0;
+            height: 1px;
+            background-color: #ccc;
+        }
+        .cart-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .cart-footer .price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+            margin-left: auto; /* Перемещает цену в правый угол */
+        }
+        .cart-footer button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #333;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .cart-footer button:hover {
+            background-color: #555;
+        }
+        .cart-summary {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 20px;
+            font-size: 16px;
+            background-color: #333;
+            color: white;
+            z-index: 1000;
+        }
+         h2 {
+            /*font-size: 20px;  Настраиваемый размер шрифта */
+            margin: 25px 0 20px 0px; /* Отступы сверху и снизу */
+
+        }
+    </style>
+</head>
+<body>
+ <!-- Затемнение -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Хедер -->
+    <div class="header">
+        <img src="{{ url_for('static', filename='icons8-меню-30.png') }}" alt="Menu" id="menu-icon">
+        <h1>Airmasters</h1>
+        <div class="icons">
+            <img src="{{ url_for('static', filename='icons8-сердце-50.png') }}" alt="Favorites" onclick="window.location.href='/favorite'">
+            <img src="{{ url_for('static', filename='icons8-сумка-для-покупок-50 (1).png') }}" alt="Cart" onclick="window.location.href='/cart'">
+        </div>
+    </div>
+
+    <!-- Боковое меню -->
+    <div class="sidebar" id="sidebar">
+        <img src="{{ url_for('static', filename='icons8-крестик-30.png') }}" alt="Close" id="close-icon">
+        <ul class="main-menu">
+            <li><a href="/" class="active">Главная</a></li>
+            <li>
+                <a href="#" id="catalog-link">Каталог</a>
+                <ul class="dropdown" id="catalog-dropdown">
+                    {% for category in categories %}
+                    <li><a href="/products?category={{ category.id }}">{{ category.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li><a href="/about">О нас</a></li>
+            <li><a href="/contacts">Контакты</a></li>
+            <li><a href="/lk">Личный кабинет</a></li>
+        </ul>
+    </div>
+    <div class="cart-header">Корзина</div>
+<div class="cart-container">
+    <h2>Корзина</h2>
+    {% for item in cart_items %}
+    {% if item.stockQuantity > 0 %}
+    <!-- Товары в наличии -->
+    <div class="cart-item" data-id="{{ item.productId }}">
+    <div class="cart-item-header">
+        <img src="{{ item.photoUrl if item.photoUrl else url_for('static', filename='placeholder.png') }}"
+             alt="Фото товара" class="cart-item-photo">
+        <div class="cart-item-info">
+            <h3>{{ item.name }}</h3>
+            <p>Артикул: {{ item.productId }}</p>
+            <p>В наличии: {{ item.stockQuantity }}</p>
+            <div class="quantity-controls">
+                <button onclick="updateQuantity({{ item.productId }}, -1)">-</button>
+                <span id="quantity-{{ item.productId }}">{{ item.cartQuantity }}</span>
+                <button {% if item.cartQuantity >= item.stockQuantity %}disabled{% endif %}
+                        onclick="updateQuantity({{ item.productId }}, 1)">+</button>
+            </div>
+        </div>
+        <img src="{{ url_for('static', filename='free-icon-dots-3426508.png') }}"
+             alt="Menu" class="dots-menu" onclick="toggleMenu({{ item.productId }})">
+        <div class="menu-dropdown" id="menu-{{ item.productId }}">
+            <button onclick="toggleFavorite({{ item.productId }}, {% if item.is_favorite %}false{% else %}true{% endif %})">
+                {% if item.is_favorite %}
+                    Удалить из избранного
+                {% else %}
+                    В избранное
+                {% endif %}
+            </button>
+            <button onclick="removeItem({{ item.productId }})">Удалить</button>
+        </div>
+    </div>
+    <div class="cart-divider"></div>
+    <div class="cart-footer">
+        <span class="price">Стоимость: {{ item.price * item.cartQuantity }}₽</span>
+
+    </div>
+</div>
+    {% endif %}
+    {% endfor %}
+
+    {% set out_of_stock = cart_items | selectattr('stockQuantity', 'equalto', 0) | list %}
+    {% if out_of_stock %}
+    <!-- Товары, которых нет в наличии -->
+<h2>Нет в продаже</h2>
+{% for item in out_of_stock %}
+<div class="cart-item unavailable" data-id="{{ item.productId }}">
+    <div class="cart-item-header">
+        <!-- Фото товара -->
+        <img src="{{ item.photoUrl if item.photoUrl else url_for('static', filename='placeholder.png') }}"
+             alt="Фото товара" class="cart-item-photo">
+
+        <!-- Информация о товаре -->
+        <div class="cart-item-info">
+            <h3>{{ item.name }}</h3>
+            <p>Артикул: {{ item.productId }}</p>
+            <p class="out-of-stock">Товар закончился</p>
+        </div>
+
+        <!-- Меню (три точки) -->
+        <img src="{{ url_for('static', filename='free-icon-dots-3426508.png') }}"
+             alt="Menu" class="dots-menu" onclick="toggleMenu({{ item.productId }})">
+
+        <!-- Выпадающее меню -->
+        <div class="menu-dropdown" id="menu-{{ item.productId }}">
+            <button onclick="toggleFavorite({{ item.productId }}, {% if item.is_favorite %}false{% else %}true{% endif %})">
+                {% if item.is_favorite %}
+                    Удалить из избранного
+                {% else %}
+                    В избранное
+                {% endif %}
+            </button>
+            <button onclick="removeItem({{ item.productId }})">Удалить</button>
+        </div>
+    </div>
+
+        <div class="cart-divider"></div>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+<div class="cart-summary" onclick="window.location.href='/order';" style="cursor: pointer;">
+    К оформлению: {{ total_items }} шт., итоговая сумма: {{ total_cost }}₽
+</div>
+
+<script>
+    document.querySelectorAll('.cart-item').forEach(item => {
+    item.addEventListener('click', (event) => {
+        // Игнорируем клики на кнопки и меню
+        if (event.target.closest('button') || event.target.closest('.dots-menu') || event.target.closest('.menu-dropdown')) {
+            return;
+        }
+
+        // Получаем ID товара и переходим на страницу с подробной информацией
+        const productId = item.dataset.id;
+        window.location.href = `/product/${productId}?referrer=cart`;
+    });
+});
+
+    function toggleFavorite(productId, addToFavorites) {
+    const url = addToFavorites ? '/add_to_favorite' : '/remove_from_favorite';
+
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: productId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload(); // Обновляем страницу для изменения кнопки
+        } else {
+            alert(data.message || 'Ошибка при обновлении избранного');
+        }
+    })
+    .catch(error => console.error('Ошибка:', error));
+}
+
+
+    const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const catalogLink = document.getElementById('catalog-link');
+        const catalogDropdown = document.getElementById('catalog-dropdown');
+
+        menuIcon.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            overlay.classList.add('visible');
+        });
+
+        closeIcon.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+        });
+
+        catalogLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            catalogDropdown.classList.toggle('open');
+        });
+
+    function updateQuantity(productId, delta) {
+        const currentQuantity = parseInt(
+            document.querySelector(`#quantity-${productId}`).textContent
+        );
+
+        if (currentQuantity === 1 && delta === -1) {
+            const confirmDelete = confirm("Удалить товар из корзины?");
+            if (!confirmDelete) return;
+
+            removeItem(productId);
+            return;
+        }
+
+        fetch(`/update_quantity?product_id=${productId}&delta=${delta}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    location.reload();
+                }
+            });
+    }
+
+    function removeItem(productId) {
+        fetch(`/remove_item?product_id=${productId}`, { method: 'POST' })
+            .then(() => location.reload());
+    }
+
+    function toggleMenu(productId) {
+        const menu = document.getElementById(`menu-${productId}`);
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+
+    function addToFavorites() {
+        alert("Товар добавлен в избранное!");
+    }
+</script>
+
+</body>
+</html>

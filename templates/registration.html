@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airmasters - Регистрация</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            width: 100%;
+            background-color: #2c2c2c;
+            color: white;
+            padding: 20px 15px;
+            position: fixed;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .header img {
+            height: 32px;
+            width: 32px;
+            cursor: pointer;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-left: 45px;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .header .icons {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-right: 25px;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: 150px auto 50px;
+            padding: 20px;
+            text-align: left;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .form-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .form-container input {
+            width: 94%;
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-container input.error {
+            border-color: coral;
+            background-color: #ffe6e6;
+        }
+
+        .form-container .error-message {
+            color: coral;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .form-container button:hover {
+            background-color: #555;
+        }
+
+        .form-container .success {
+            color: green;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .form-container .login-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .form-container .login-link a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        .form-container .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 80%;
+            height: 100%;
+            background-color: #333;
+            color: white;
+            padding: 40px 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            transition: left 0.3s ease;
+            z-index: 1001;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar ul.main-menu {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .sidebar ul.main-menu > li {
+            margin: 20px 0;
+        }
+
+        .sidebar ul.dropdown {
+            display: none;
+            list-style: none;
+            margin: 15px 0;
+            padding-left: 10px;
+        }
+
+        .sidebar ul.dropdown.open {
+            display: block;
+        }
+
+        .sidebar ul.dropdown li {
+            margin: 10px 0;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        .sidebar a.active {
+            text-decoration: underline;
+        }
+
+        .sidebar ul.dropdown a {
+            font-size: 18px;
+            color: #bbb;
+        }
+
+        .sidebar ul.dropdown a:hover {
+            color: white;
+        }
+
+        .sidebar #close-icon {
+            position: absolute;
+            top: 25px;
+            right: 20px;
+            height: 40px;
+            width: 40px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .sidebar.open #close-icon {
+            display: block;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+        }
+
+        .overlay.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="overlay" id="overlay"></div>
+
+<div class="header">
+    <img src="{{ url_for('static', filename='icons8-меню-30.png') }}" alt="Menu" id="menu-icon">
+    <h1>Airmasters</h1>
+    <div class="icons">
+        <img src="{{ url_for('static', filename='icons8-сердце-50.png') }}" alt="Favorites">
+        <img src="{{ url_for('static', filename='icons8-сумка-для-покупок-50.png') }}" alt="Cart">
+    </div>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <img src="{{ url_for('static', filename='icons8-крестик-30.png') }}" alt="Close" id="close-icon">
+    <ul class="main-menu">
+        <li><a href="/">Главная</a></li>
+        <li>
+            <a href="#" id="catalog-link">Каталог</a>
+            <ul class="dropdown" id="catalog-dropdown">
+                {% for category in categories %}
+                <li><a href="/products?category={{ category.id }}">{{ category.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li><a href="/about">О нас</a></li>
+        <li><a href="/contacts">Контакты</a></li>
+        <li><a href="/authorization" class="active">Личный кабинет</a></li>
+    </ul>
+</div>
+
+<div class="form-container">
+    <h2>Регистрация</h2>
+
+    {% if success %}
+    <div class="success">{{ success }}</div>
+    {% endif %}
+
+    {% if errors is not defined %}
+    {% set errors = {} %}
+    {% endif %}
+
+    <form action="/register" method="POST">
+        <label for="name">Имя:</label>
+        <input type="text" id="name" name="name" value="{{ name }}" class="{{ 'error' if 'name' in errors else '' }}">
+        {% if errors.name %}
+        <div class="error-message">{{ errors.name }}</div>
+        {% endif %}
+
+        <label for="phone">Телефон:</label>
+        <input type="tel" id="phone" name="phone" value="{{ phone }}" class="{{ 'error' if 'phone' in errors else '' }}"
+               placeholder="+79990001122">
+        {% if errors.phone %}
+        <div class="error-message">{{ errors.phone }}</div>
+        {% endif %}
+
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" name="email" value="{{ email }}"
+               class="{{ 'error' if 'email' in errors else '' }}">
+        {% if errors.email %}
+        <div class="error-message">{{ errors.email }}</div>
+        {% endif %}
+
+        <label for="login">Логин:</label>
+        <input type="text" id="login" name="login" value="{{ login }}"
+               class="{{ 'error' if 'login' in errors else '' }}">
+        {% if errors.login %}
+        <div class="error-message">{{ errors.login }}</div>
+        {% endif %}
+
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password"
+               class="{{ 'error' if 'password' in errors or 'confirm_password' in errors else '' }}">
+        {% if errors.password %}
+        <div class="error-message">{{ errors.password }}</div>
+        {% endif %}
+
+        <label for="confirm-password">Повторите пароль:</label>
+        <input type="password" id="confirm-password" name="confirm_password"
+               class="{{ 'error' if 'confirm_password' in errors else '' }}">
+        {% if errors.confirm_password %}
+        <div class="error-message">{{ errors.confirm_password }}</div>
+        {% endif %}
+
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+
+    <div class="login-link">
+        Уже есть аккаунт? <a href="/authorization">Войти</a>
+    </div>
+</div>
+
+<script>
+    const menuIcon = document.getElementById('menu-icon');
+    const closeIcon = document.getElementById('close-icon');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const catalogLink = document.getElementById('catalog-link');
+    const catalogDropdown = document.getElementById('catalog-dropdown');
+
+    menuIcon.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        overlay.classList.add('visible');
+    });
+
+    closeIcon.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('visible');
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('visible');
+    });
+
+    catalogLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        catalogDropdown.classList.toggle('open');
+    });
+    const phoneInput = document.getElementById('phone');
+
+phoneInput.addEventListener('focus', () => {
+if (!phoneInput.value.startsWith('+')) {
+    phoneInput.value = '+'; // Добавляет '+' в начало, если его нет
+}
+});
+
+// Предотвращение удаления '+' пользователем
+phoneInput.addEventListener('input', () => {
+if (!phoneInput.value.startsWith('+')) {
+    phoneInput.value = '+' + phoneInput.value.replace(/^\+/, ''); // Восстанавливает '+', если удалено
+}
+});
+</script>
+</body>
+</html>
